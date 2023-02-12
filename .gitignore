@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,django,linux,windows,terraform,ansible,godot
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,linux,windows,terraform,ansible,godot
-
+.idea/
+test.py
 ### Ansible ###
 *.retry
 ### PyCharm ###
