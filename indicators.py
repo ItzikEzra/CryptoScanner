@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 import numpy as np
+import datetime
 
 
 # get all the relevant list from  scalpstation
@@ -25,10 +26,17 @@ def fetch_coins_from_scalpstation():
 
 
 # get the market data from binance api
+def get_market_data(symbol, interval):
+    # Calculate start_time as 00:00 on the previous day
+    now = datetime.datetime.now()
+    yesterday = now - datetime.timedelta(days=1)
+    start_time = datetime.datetime(yesterday.year, yesterday.month, yesterday.day)
 
-def get_market_data(symbol, interval, start_time, end_time):
+    # Calculate end_time as the current time
+    end_time = now
+
     # Define the API endpoint for retrieving the market data
-    endpoint = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&startTime={start_time}&endTime={end_time}"
+    endpoint = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&startTime={start_time.timestamp() * 1000}&endTime={end_time.timestamp() * 1000}"
 
     # Make the API request
     response = requests.get(endpoint)
@@ -54,7 +62,6 @@ def get_market_data(symbol, interval, start_time, end_time):
     market_data = market_data[["Close"]]
 
     return market_data
-
 
 # according to the desire strategy, this will return bollinger info
 def calculate_bollinger_bands(symbol, market_data, window_size=21, num_std=2):
