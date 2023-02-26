@@ -56,7 +56,4 @@
     <p>By default, the bot uses a simple Bollinger Bands trading strategy, but you can modify the script to use other indicators or strategies.</p>
     <h2>Contributing</h2>
     <p>If you have any suggestions for improving this code, feel free to submit a pull request or open an issue.</p>
-    <h2>License</h2>
-    <p>This code is licensed under the MIT license.</p>
-  </body>
-</html>
+   
