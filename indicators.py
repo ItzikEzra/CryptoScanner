@@ -1,8 +1,5 @@
 import requests
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 import numpy as np
 import datetime
 from requests_html import HTMLSession
@@ -10,23 +7,7 @@ from requests_html import HTMLSession
 
 
 # get all the relevant list from  scalpstation
-def fetch_coins_from_scalpstation_selenium():
-    # Open the browser
-    service_obj = Service("C:\webdriver.exe")
-    driver = webdriver.Chrome(service=service_obj)
-    url_site = 'https://scalpstation.com/'
-    driver.get(url_site)
-
-    # fetch all the relevant elements
-    list_of_coins = driver.find_elements(By.CLASS_NAME, 'symbol-name')  # BTC
-    list_of_coins_usdt_suffix = []
-
-    # adding usdt suffix for binance api
-    for e in list_of_coins:
-        list_of_coins_usdt_suffix.append(e.text + 'USDT')  # BTC -> BTCUSDT
-    return list_of_coins_usdt_suffix
-
-def fetch_coins_from_scalpstation_requests_html():
+def fetch_coins_from_scalpstation():
     # Create an HTMLSession object
     session = HTMLSession()
 
@@ -47,45 +28,7 @@ def fetch_coins_from_scalpstation_requests_html():
 
     # get the market data from binance api
 
-def get_market_data(symbol, interval):
-    # Calculate start_time as 00:00 on the previous day
-    now = datetime.datetime.now()
-    yesterday = now - datetime.timedelta(days=1)
-    start_time = datetime.datetime(yesterday.year, yesterday.month, yesterday.day)
-
-    # Calculate end_time as the current time
-    end_time = now
-
-    # Define the API endpoint for retrieving the market data
-    endpoint = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}"
-           #    f"&startTime={start_time.timestamp() * 1000}&endTime={end_time.timestamp() * 1000}"
-
-    # Make the API request
-    response = requests.get(endpoint)
-
-    # Check if the request was successful
-    if response.status_code != 200:
-        raise Exception("Failed to retrieve market data")
-    # Convert the response to a pandas DataFrame
-    market_data = pd.DataFrame(response.json(),
-                               columns=["Open time", "Open", "High", "Low", "Close", "Volume", "Close time",
-                                        "Quote asset volume", "Number of trades", "Taker buy base asset volume",
-                                        "Taker buy quote asset volume", "Ignore"])
-
-    # Convert the timestamps to datetime objects
-    market_data["Open time"] = pd.to_datetime(market_data["Open time"], unit='ms')
-    market_data["Close time"] = pd.to_datetime(market_data["Close time"], unit='ms')
-
-    # Set the index to the close time
-    market_data.set_index("Close time", inplace=True)
-
-    # Keep only the close price
-    market_data = market_data[["Close"]]
-
-    return market_data
-
-
-def get_market_data_error_handling(symbol, interval):
+def get_market_data(symbol, interval = '1d'):
     try:
         #
         # # Calculate start_time as 00:00 on the previous day
@@ -127,8 +70,6 @@ def get_market_data_error_handling(symbol, interval):
         print(f"Error retrieving market data for {symbol} with interval {interval}")
         print(e)
         return pd.DataFrame()
-
-
 
 
 # according to the desire strategy, this will return bollinger info
@@ -211,7 +152,7 @@ def calculate_volume_profile(market_data, interval_size=10):
 
 def get_all_info():
     # Get the list of coins from ScalpStation
-    coins = fetch_coins_from_scalpstation_requests_html()
+    coins = fetch_coins_from_scalpstation()
 
     # Create an empty DataFrame to store the market data for each coin
     data_f = pd.DataFrame()
@@ -219,7 +160,7 @@ def get_all_info():
     # Iterate over each coin and retrieve the market data
     for coin in coins:
         # Retrieve the market data for the coin from Binance
-        market_data = get_market_data_error_handling(coin,'1d')
+        market_data = get_market_data(coin,'1d')
 
         # Calculate the Bollinger Bands, RSI, Market Profile, and Volume Profile for the market data
         bb = calculate_bollinger_bands(coin, market_data)
